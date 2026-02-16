@@ -1,0 +1,141 @@
+{
+  "accounts" : [ {
+    "id" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "name" : "РћСЃРЅРѕРІРЅРѕР№ СЃС‡РµС‚",
+    "balance" : 173850.00
+  }, {
+    "id" : "0981a50d-a45b-4021-ae9d-67f648b7b830",
+    "name" : "РќР°РєРѕРїРёС‚РµР»СЊРЅС‹Р№ СЃС‡РµС‚",
+    "balance" : 13500.00
+  }, {
+    "id" : "d28f7574-ccfa-4e0d-b234-0d9c84cf2a97",
+    "name" : "РќР°Р»РёС‡РЅС‹Рµ",
+    "balance" : 3500.00
+  } ],
+  "categories" : [ {
+    "id" : "eee1860d-dd19-4d4e-9db3-04277abe2030",
+    "type" : "EXPENSE",
+    "name" : "РўСЂР°РЅСЃРїРѕСЂС‚"
+  }, {
+    "id" : "43d5842c-a300-43e1-863a-9c44d2a8aaad",
+    "type" : "EXPENSE",
+    "name" : "Р—РґРѕСЂРѕРІСЊРµ"
+  }, {
+    "id" : "dbf0d758-f80a-48dc-9f76-d4f41c6dd2a9",
+    "type" : "INCOME",
+    "name" : "Р—Р°СЂРїР»Р°С‚Р°"
+  }, {
+    "id" : "efa82d0f-7133-41cd-93ef-06c226321f9f",
+    "type" : "EXPENSE",
+    "name" : "Р Р°Р·РІР»РµС‡РµРЅРёСЏ"
+  }, {
+    "id" : "55fcd185-05ec-4c31-8fe8-eeb64683dc12",
+    "type" : "EXPENSE",
+    "name" : "РљР°С„Рµ"
+  }, {
+    "id" : "627b90cd-e431-4a6c-a86e-0db228f91ff3",
+    "type" : "INCOME",
+    "name" : "РљСЌС€Р±СЌРє"
+  }, {
+    "id" : "c4f9852b-99f4-4bad-a351-e73ee1bf5fd4",
+    "type" : "EXPENSE",
+    "name" : "РџСЂРѕРґСѓРєС‚С‹"
+  } ],
+  "operations" : [ {
+    "id" : "058c8ec5-d4da-45b3-bc55-8e02dddb616f",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 850.00,
+    "date" : "2026-02-10",
+    "description" : "РљРѕС„Рµ Рё Р·Р°РІС‚СЂР°Рє",
+    "categoryId" : "55fcd185-05ec-4c31-8fe8-eeb64683dc12"
+  }, {
+    "id" : "4e80a1e6-3e19-429a-b0d4-6427406f653e",
+    "type" : "INCOME",
+    "bankAccountId" : "0981a50d-a45b-4021-ae9d-67f648b7b830",
+    "amount" : 3500.00,
+    "date" : "2026-02-06",
+    "description" : "РџСЂРѕС†РµРЅС‚С‹ РїРѕ РІРєР»Р°РґСѓ",
+    "categoryId" : "627b90cd-e431-4a6c-a86e-0db228f91ff3"
+  }, {
+    "id" : "c24095fe-8e75-4fac-8844-701728472e58",
+    "type" : "INCOME",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 75000.00,
+    "date" : "2026-01-10",
+    "description" : "Р—Р°СЂРїР»Р°С‚Р°",
+    "categoryId" : "dbf0d758-f80a-48dc-9f76-d4f41c6dd2a9"
+  }, {
+    "id" : "f224ad5f-ce91-4f3d-a9f8-485b611a1882",
+    "type" : "EXPENSE",
+    "bankAccountId" : "d28f7574-ccfa-4e0d-b234-0d9c84cf2a97",
+    "amount" : 1500.00,
+    "date" : "2026-02-12",
+    "description" : "РћР±РµРґ РІ СЂРµСЃС‚РѕСЂР°РЅРµ",
+    "categoryId" : "55fcd185-05ec-4c31-8fe8-eeb64683dc12"
+  }, {
+    "id" : "aa45b533-69ba-4c33-91a6-549d0854c17d",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 4500.00,
+    "date" : "2026-01-20",
+    "description" : "РџСЂРѕРґСѓРєС‚С‹",
+    "categoryId" : "c4f9852b-99f4-4bad-a351-e73ee1bf5fd4"
+  }, {
+    "id" : "54c3642a-3c45-4dbb-aae1-5a8a48a17acd",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 1000.00,
+    "date" : "2026-02-14",
+    "description" : "РўР°РєСЃРё",
+    "categoryId" : "eee1860d-dd19-4d4e-9db3-04277abe2030"
+  }, {
+    "id" : "7dd110f4-fee0-4093-aac7-5056b3d37527",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 12000.00,
+    "date" : "2026-01-15",
+    "description" : "РћС‚РїСѓСЃРє",
+    "categoryId" : "efa82d0f-7133-41cd-93ef-06c226321f9f"
+  }, {
+    "id" : "98bfc236-b039-4395-9a1a-a6601f76d3bc",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 3000.00,
+    "date" : "2026-02-13",
+    "description" : "РђРїС‚РµРєР°",
+    "categoryId" : "43d5842c-a300-43e1-863a-9c44d2a8aaad"
+  }, {
+    "id" : "82560b5a-3087-4aaa-8c9d-ae4eeb01fd2b",
+    "type" : "INCOME",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 1200.00,
+    "date" : "2026-02-13",
+    "description" : "РљСЌС€Р±СЌРє РїРѕ РєР°СЂС‚Рµ",
+    "categoryId" : "627b90cd-e431-4a6c-a86e-0db228f91ff3"
+  }, {
+    "id" : "7c5119e8-083f-4340-8efe-8910f5e2eef0",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 3500.00,
+    "date" : "2026-02-09",
+    "description" : "РџСЂРѕРґСѓРєС‚С‹ РІ СЃСѓРїРµСЂРјР°СЂРєРµС‚Рµ",
+    "categoryId" : "c4f9852b-99f4-4bad-a351-e73ee1bf5fd4"
+  }, {
+    "id" : "d4d9b18d-748c-4ed4-9c3e-e4bf7a481d1b",
+    "type" : "INCOME",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 75000.00,
+    "date" : "2026-02-11",
+    "description" : "Р—Р°СЂРїР»Р°С‚Р° Р·Р° РјРµСЃСЏС†",
+    "categoryId" : "dbf0d758-f80a-48dc-9f76-d4f41c6dd2a9"
+  }, {
+    "id" : "264346f9-d7fd-47b2-ac5b-cf87895f68a9",
+    "type" : "EXPENSE",
+    "bankAccountId" : "29e01c0c-e1a3-4356-9250-dce6d1ee7fc8",
+    "amount" : 2500.00,
+    "date" : "2026-02-15",
+    "description" : "РљРёРЅРѕ Рё СѓР¶РёРЅ",
+    "categoryId" : "efa82d0f-7133-41cd-93ef-06c226321f9f"
+  } ]
+}
