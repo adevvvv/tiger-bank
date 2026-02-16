@@ -1,10 +1,10 @@
 package org.example.console;
 
-
 import com.google.inject.Inject;
 import org.example.dto.DataExporter;
 import org.example.dto.DataImporter;
 import org.example.dto.ImportResult;
+import org.example.dto.DataHandlerFactory;
 import org.example.model.BankAccount;
 import org.example.model.Category;
 import org.example.model.Operation;
@@ -21,15 +21,13 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.UUID;
 
-
 public class ConsoleApp {
 
     private final AccountManager accountManager;
     private final CategoryManager categoryManager;
     private final OperationManager operationManager;
     private final AnalyticsService analyticsService;
-    private final DataExporter dataExporter;
-    private final DataImporter dataImporter;
+    private final DataHandlerFactory dataHandlerFactory;
     private final Scanner scanner;
 
     @Inject
@@ -38,14 +36,12 @@ public class ConsoleApp {
             CategoryManager categoryManager,
             OperationManager operationManager,
             AnalyticsService analyticsService,
-            DataExporter dataExporter,
-            DataImporter dataImporter) {
+            DataHandlerFactory dataHandlerFactory) {
         this.accountManager = accountManager;
         this.categoryManager = categoryManager;
         this.operationManager = operationManager;
         this.analyticsService = analyticsService;
-        this.dataExporter = dataExporter;
-        this.dataImporter = dataImporter;
+        this.dataHandlerFactory = dataHandlerFactory;
         this.scanner = new Scanner(System.in);
     }
 
@@ -142,18 +138,57 @@ public class ConsoleApp {
         dynamics.forEach((month, info) ->
                 System.out.println("   • " + month + ": " + info));
 
-        System.out.println("\n5. ЭКСПОРТ ДАННЫХ В JSON:");
-        String exportFile = "tigerbank_export.json";
-        dataExporter.export(
+        System.out.println("\n5. ЭКСПОРТ ДАННЫХ В РАЗНЫХ ФОРМАТАХ:");
+
+        // Экспорт в JSON
+        String jsonFile = "tigerbank_export.json";
+        DataExporter jsonExporter = dataHandlerFactory.getExporter(jsonFile);
+        jsonExporter.export(
                 accountManager.getAllAccounts(),
                 categoryManager.getAllCategories(),
                 operationManager.getAllOperations(),
-                exportFile
+                jsonFile
         );
+        System.out.println("   ✓ JSON экспорт завершен (файл: " + jsonFile + ")");
 
-        System.out.println("\n6. ИМПОРТ ДАННЫХ ИЗ JSON:");
-        ImportResult importResult = dataImporter.importData(exportFile);
-        System.out.println("   " + importResult);
+        // Экспорт в YAML
+        String yamlFile = "tigerbank_export.yaml";
+        DataExporter yamlExporter = dataHandlerFactory.getExporter(yamlFile);
+        yamlExporter.export(
+                accountManager.getAllAccounts(),
+                categoryManager.getAllCategories(),
+                operationManager.getAllOperations(),
+                yamlFile
+        );
+        System.out.println("   ✓ YAML экспорт завершен (файл: " + yamlFile + ")");
+
+        // Экспорт в CSV
+        String csvFile = "tigerbank_export.csv";
+        DataExporter csvExporter = dataHandlerFactory.getExporter(csvFile);
+        csvExporter.export(
+                accountManager.getAllAccounts(),
+                categoryManager.getAllCategories(),
+                operationManager.getAllOperations(),
+                csvFile
+        );
+        System.out.println("   ✓ CSV экспорт завершен (файл: " + csvFile + ")");
+
+        System.out.println("\n6. ИМПОРТ ДАННЫХ ИЗ РАЗНЫХ ФОРМАТОВ:");
+
+        // Импорт из JSON
+        DataImporter jsonImporter = dataHandlerFactory.getImporter(jsonFile);
+        ImportResult jsonResult = jsonImporter.importData(jsonFile);
+        System.out.println("   JSON импорт: " + jsonResult);
+
+        // Импорт из YAML
+        DataImporter yamlImporter = dataHandlerFactory.getImporter(yamlFile);
+        ImportResult yamlResult = yamlImporter.importData(yamlFile);
+        System.out.println("   YAML импорт: " + yamlResult);
+
+        // Импорт из CSV
+        DataImporter csvImporter = dataHandlerFactory.getImporter(csvFile);
+        ImportResult csvResult = csvImporter.importData(csvFile);
+        System.out.println("   CSV импорт: " + csvResult);
 
         System.out.println("\n7. ДЕМОНСТРАЦИЯ CRUD ОПЕРАЦИЙ:");
 
@@ -197,8 +232,8 @@ public class ConsoleApp {
             System.out.println("5. Создать категорию");
             System.out.println("6. Создать операцию");
             System.out.println("7. Аналитика");
-            System.out.println("8. Экспорт данных в JSON");
-            System.out.println("9. Импорт данных из JSON");
+            System.out.println("8. Экспорт данных (JSON/YAML/CSV)");
+            System.out.println("9. Импорт данных (JSON/YAML/CSV)");
             System.out.println("10. Обновить счет");
             System.out.println("11. Обновить категорию");
             System.out.println("12. Удалить операцию");
@@ -347,32 +382,61 @@ public class ConsoleApp {
         analyticsService.groupExpenseByCategory(start, end)
                 .forEach((cat, amount) ->
                         System.out.println("• " + cat.getName() + ": " + amount + " руб."));
+
+        System.out.println("\nОбщая сумма доходов: " + analyticsService.getTotalIncome(start, end) + " руб.");
+        System.out.println("Общая сумма расходов: " + analyticsService.getTotalExpense(start, end) + " руб.");
     }
 
     private void exportMenu() {
-        System.out.print("Введите имя файла для экспорта (например, export.json): ");
+        System.out.println("\n--- Экспорт данных ---");
+        System.out.println("Поддерживаемые форматы:");
+        System.out.println("  • JSON - файл с расширением .json");
+        System.out.println("  • YAML - файл с расширением .yaml или .yml");
+        System.out.println("  • CSV  - файл с расширением .csv");
+        System.out.print("Введите имя файла для экспорта (например, data.json, data.yaml или data.csv): ");
         String filename = scanner.nextLine();
 
-        dataExporter.export(
-                accountManager.getAllAccounts(),
-                categoryManager.getAllCategories(),
-                operationManager.getAllOperations(),
-                filename
-        );
+        try {
+            DataExporter exporter = dataHandlerFactory.getExporter(filename);
+            exporter.export(
+                    accountManager.getAllAccounts(),
+                    categoryManager.getAllCategories(),
+                    operationManager.getAllOperations(),
+                    filename
+            );
+            System.out.println("✅ Экспорт в " + filename + " завершен успешно!");
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Ошибка при экспорте: " + e.getMessage());
+        }
     }
 
     private void importMenu() {
-        System.out.print("Введите имя файла для импорта: ");
+        System.out.println("\n--- Импорт данных ---");
+        System.out.println("Поддерживаемые форматы:");
+        System.out.println("  • JSON - файл с расширением .json");
+        System.out.println("  • YAML - файл с расширением .yaml или .yml");
+        System.out.println("  • CSV  - файл с расширением .csv");
+        System.out.print("Введите имя файла для импорта (например, data.json, data.yaml или data.csv): ");
         String filename = scanner.nextLine();
 
-        ImportResult result = dataImporter.importData(filename);
-        System.out.println("Результат импорта: " + result);
+        try {
+            DataImporter importer = dataHandlerFactory.getImporter(filename);
+            ImportResult result = importer.importData(filename);
+            System.out.println("Результат импорта: " + result);
 
-        if (!result.hasErrors()) {
-            System.out.println("Импортированные данные можно просмотреть в соответствующих разделах.");
-        } else {
-            System.out.println("Ошибки при импорте:");
-            result.getErrors().forEach(err -> System.out.println("  • " + err));
+            if (!result.hasErrors()) {
+                System.out.println("✅ Импорт из " + filename + " завершен успешно!");
+                System.out.println("Импортированные данные можно просмотреть в соответствующих разделах.");
+            } else {
+                System.out.println("⚠️ Импорт завершен с ошибками:");
+                result.getErrors().forEach(err -> System.out.println("  • " + err));
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Ошибка при импорте: " + e.getMessage());
         }
     }
 

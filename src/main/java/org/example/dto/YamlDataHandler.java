@@ -2,18 +2,19 @@ package org.example.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.inject.Singleton;
 
 @Singleton
-public class JsonDataHandler extends AbstractDataHandler {
+public class YamlDataHandler extends AbstractDataHandler {
 
     private final ObjectMapper objectMapper;
 
-    public JsonDataHandler() {
-        this.objectMapper = new ObjectMapper();
+    public YamlDataHandler() {
+        // Создаем ObjectMapper с YAMLFactory
+        this.objectMapper = new ObjectMapper(new YAMLFactory());
         this.objectMapper.registerModule(new JavaTimeModule());
-        this.objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
@@ -24,6 +25,6 @@ public class JsonDataHandler extends AbstractDataHandler {
 
     @Override
     protected String getFileExtension() {
-        return ".json";
+        return ".yaml";
     }
 }

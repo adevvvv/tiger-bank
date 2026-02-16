@@ -2,16 +2,9 @@ package org.example.di;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
-import org.example.dto.DataExporter;
-import org.example.dto.DataImporter;
-import org.example.dto.JsonDataHandler;
+import org.example.dto.*;
 import org.example.repository.*;
-import org.example.service.AccountManager;
-import org.example.service.AnalyticsService;
-import org.example.service.CategoryManager;
-import org.example.service.OperationManager;
-
-
+import org.example.service.*;
 
 public class TigerBankModule extends AbstractModule {
 
@@ -31,7 +24,13 @@ public class TigerBankModule extends AbstractModule {
         bind(AnalyticsService.class);
 
         // Привязка обработчиков импорта/экспорта
-        bind(DataExporter.class).to(JsonDataHandler.class).in(Singleton.class);
-        bind(DataImporter.class).to(JsonDataHandler.class).in(Singleton.class);
+        bind(JsonDataHandler.class).in(Singleton.class);
+        bind(YamlDataHandler.class).in(Singleton.class);
+        bind(CsvDataHandler.class).in(Singleton.class);
+        bind(DataHandlerFactory.class).in(Singleton.class);
+
+        // По умолчанию используем JSON для обратной совместимости
+        bind(DataExporter.class).to(JsonDataHandler.class);
+        bind(DataImporter.class).to(JsonDataHandler.class);
     }
 }
