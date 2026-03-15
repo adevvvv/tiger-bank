@@ -24,10 +24,10 @@ public class AccountManager {
 
     public BankAccount createAccount(String name, BigDecimal initialBalance) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Account name cannot be empty");
+            throw new IllegalArgumentException("Имя счета не может быть пустым");
         }
         if (initialBalance == null || initialBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Initial balance cannot be negative");
+            throw new IllegalArgumentException("Начальный баланс не может быть отрицательным");
         }
 
         BankAccount account = new BankAccount(
@@ -49,11 +49,11 @@ public class AccountManager {
 
     public BankAccount updateAccountName(UUID id, String newName) {
         if (newName == null || newName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Account name cannot be empty");
+            throw new IllegalArgumentException("Имя счета не может быть пустым");
         }
 
         BankAccount account = accountRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Счет не найден с id: " + id));
 
         account.setName(newName.trim());
         accountRepository.update(account);
@@ -62,13 +62,11 @@ public class AccountManager {
 
     public void deleteAccount(UUID id) {
         if (!accountRepository.exists(id)) {
-            throw new IllegalArgumentException("Account not found with id: " + id);
+            throw new IllegalArgumentException("Счет не найден с id: " + id);
         }
 
-        // Проверяем, есть ли операции по этому счету
         List<org.example.model.Operation> operations = operationRepository.findByBankAccountId(id);
         if (!operations.isEmpty()) {
-            // Удаляем все операции по счету
             operations.forEach(op -> operationRepository.delete(op.getId()));
         }
 
@@ -77,11 +75,11 @@ public class AccountManager {
 
     public void updateBalance(UUID accountId, BigDecimal amountChange) {
         BankAccount account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new IllegalArgumentException("Account not found with id: " + accountId));
+                .orElseThrow(() -> new IllegalArgumentException("Счет не найден с id: " + accountId));
 
         BigDecimal newBalance = account.getBalance().add(amountChange);
         if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
+            throw new IllegalArgumentException("Недостаточно средств");
         }
 
         account.setBalance(newBalance);

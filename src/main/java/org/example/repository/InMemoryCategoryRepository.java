@@ -51,7 +51,7 @@ public class InMemoryCategoryRepository implements CategoryRepository {
         if (exists(category.getId())) {
             categories.put(category.getId(), category);
         } else {
-            throw new IllegalArgumentException("Category not found with id: " + category.getId());
+            throw new IllegalArgumentException("Категория с идентификатором не найдена: " + category.getId());
         }
     }
 }

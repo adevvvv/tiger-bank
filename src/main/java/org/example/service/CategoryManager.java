@@ -22,10 +22,10 @@ public class CategoryManager {
 
     public Category createCategory(String name, Category.Type type) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Category name cannot be empty");
+            throw new IllegalArgumentException("Имя категории не может быть пустым");
         }
         if (type == null) {
-            throw new IllegalArgumentException("Category type cannot be null");
+            throw new IllegalArgumentException("Тип категории не может быть null");
         }
 
         Category category = new Category(
@@ -47,11 +47,11 @@ public class CategoryManager {
 
     public Category updateCategoryName(UUID id, String newName) {
         if (newName == null || newName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Category name cannot be empty");
+            throw new IllegalArgumentException("Имя категории не может быть пустым");
         }
 
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Категория не найдена с id: " + id));
 
         category.setName(newName.trim());
         categoryRepository.update(category);
@@ -60,15 +60,12 @@ public class CategoryManager {
 
     public void deleteCategory(UUID id) {
         if (!categoryRepository.exists(id)) {
-            throw new IllegalArgumentException("Category not found with id: " + id);
+            throw new IllegalArgumentException("Категория не найдена с id: " + id);
         }
 
-        // Проверяем, есть ли операции с этой категорией
         var operations = operationRepository.findByCategoryId(id);
         if (!operations.isEmpty()) {
-            // В реальном приложении здесь может быть логика переназначения категорий
-            // или запрет на удаление. Пока просто предупреждаем, но удаляем.
-            System.out.println("⚠️ Внимание: удаляется категория, используемая в " +
+            System.out.println("Внимание: удаляется категория, используемая в " +
                     operations.size() + " операциях");
         }
 

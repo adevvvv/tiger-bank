@@ -1,6 +1,5 @@
 package org.example.service;
 
-
 import com.google.inject.Inject;
 import org.example.model.Category;
 import org.example.model.Operation;
@@ -26,9 +25,6 @@ public class AnalyticsService {
         this.categoryRepository = categoryRepository;
     }
 
-    /**
-     * Подсчет разницы доходов и расходов за период
-     */
     public BigDecimal calculateIncomeExpenseDifference(LocalDate start, LocalDate end) {
         List<Operation> operations = operationRepository.findByDateRange(start, end);
 
@@ -45,16 +41,10 @@ public class AnalyticsService {
         return totalIncome.subtract(totalExpense);
     }
 
-    /**
-     * Группировка доходов по категориям за период
-     */
     public Map<Category, BigDecimal> groupIncomeByCategory(LocalDate start, LocalDate end) {
         return groupOperationsByCategory(start, end, Operation.Type.INCOME);
     }
 
-    /**
-     * Группировка расходов по категориям за период
-     */
     public Map<Category, BigDecimal> groupExpenseByCategory(LocalDate start, LocalDate end) {
         return groupOperationsByCategory(start, end, Operation.Type.EXPENSE);
     }
@@ -68,15 +58,13 @@ public class AnalyticsService {
         Map<Category, BigDecimal> result = new HashMap<>();
 
         for (Operation op : operations) {
-            categoryRepository.findById(op.getCategoryId()).ifPresent(category -> result.merge(category, op.getAmount(), BigDecimal::add));
+            categoryRepository.findById(op.getCategoryId()).ifPresent(category ->
+                    result.merge(category, op.getAmount(), BigDecimal::add));
         }
 
         return result;
     }
 
-    /**
-     * Получить общую сумму доходов за период
-     */
     public BigDecimal getTotalIncome(LocalDate start, LocalDate end) {
         return operationRepository.findByDateRange(start, end).stream()
                 .filter(op -> op.getType() == Operation.Type.INCOME)
@@ -84,9 +72,6 @@ public class AnalyticsService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * Получить общую сумму расходов за период
-     */
     public BigDecimal getTotalExpense(LocalDate start, LocalDate end) {
         return operationRepository.findByDateRange(start, end).stream()
                 .filter(op -> op.getType() == Operation.Type.EXPENSE)
@@ -94,9 +79,6 @@ public class AnalyticsService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    /**
-     * Получить топ категорий расходов за период
-     */
     public List<Map.Entry<Category, BigDecimal>> getTopExpenseCategories(LocalDate start,
                                                                          LocalDate end,
                                                                          int limit) {
@@ -106,9 +88,6 @@ public class AnalyticsService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Получить средний чек по категории за период
-     */
     public BigDecimal getAverageAmountByCategory(UUID categoryId, LocalDate start, LocalDate end) {
         List<Operation> operations = operationRepository.findByDateRange(start, end).stream()
                 .filter(op -> categoryId.equals(op.getCategoryId()))
@@ -125,9 +104,6 @@ public class AnalyticsService {
         return total.divide(BigDecimal.valueOf(operations.size()), 2, RoundingMode.HALF_UP);
     }
 
-    /**
-     * Получить динамику доходов/расходов по месяцам
-     */
     public Map<YearMonth, BalanceInfo> getMonthlyDynamics(LocalDate start, LocalDate end) {
         List<Operation> operations = operationRepository.findByDateRange(start, end);
 
@@ -147,9 +123,6 @@ public class AnalyticsService {
         return dynamics;
     }
 
-    /**
-     * Вспомогательный класс для хранения информации о балансе за месяц
-     */
     public static class BalanceInfo {
         private BigDecimal income = BigDecimal.ZERO;
         private BigDecimal expense = BigDecimal.ZERO;

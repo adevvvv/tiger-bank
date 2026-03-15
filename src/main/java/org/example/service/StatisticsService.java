@@ -12,7 +12,7 @@ public class StatisticsService {
     public void recordCommandExecution(String commandDescription, long durationMs) {
         commandExecutionTimes.computeIfAbsent(commandDescription, k -> new ArrayList<>())
                 .add(durationMs);
-        System.out.println("⏱️ Время выполнения '" + commandDescription + "': " + durationMs + " мс");
+        System.out.println("Время выполнения '" + commandDescription + "': " + durationMs + " мс");
     }
 
     public void printStatistics() {
@@ -28,7 +28,7 @@ public class StatisticsService {
             long minTime = times.stream().mapToLong(Long::longValue).min().orElse(0);
             long totalTime = times.stream().mapToLong(Long::longValue).sum();
 
-            System.out.println("\n📊 " + command + ":");
+            System.out.println("\n" + command + ":");
             System.out.println("   Количество вызовов: " + times.size());
             System.out.println("   Среднее время: " + String.format("%.2f", avgTime) + " мс");
             System.out.println("   Минимальное время: " + minTime + " мс");
@@ -37,8 +37,4 @@ public class StatisticsService {
         });
     }
 
-    public void resetStatistics() {
-        commandExecutionTimes.clear();
-        System.out.println("✅ Статистика сброшена");
-    }
 }

@@ -12,7 +12,6 @@ public class YamlDataHandler extends AbstractDataHandler {
     private final ObjectMapper objectMapper;
 
     public YamlDataHandler() {
-        // Создаем ObjectMapper с YAMLFactory
         this.objectMapper = new ObjectMapper(new YAMLFactory());
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);

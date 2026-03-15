@@ -73,7 +73,7 @@ public class InMemoryOperationRepository implements OperationRepository {
         if (exists(operation.getId())) {
             operations.put(operation.getId(), operation);
         } else {
-            throw new IllegalArgumentException("Operation not found with id: " + operation.getId());
+            throw new IllegalArgumentException("Операция не найдена с идентификатором: " + operation.getId());
         }
     }
 }

@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 public class OperationManager {
 
@@ -40,10 +39,8 @@ public class OperationManager {
             String description,
             UUID categoryId) {
 
-        // Валидация
         validateOperation(type, bankAccountId, amount, categoryId);
 
-        // Создаем операцию
         Operation operation = new Operation(
                 UUID.randomUUID(),
                 type,
@@ -54,7 +51,6 @@ public class OperationManager {
                 categoryId
         );
 
-        // Обновляем баланс счета
         BigDecimal balanceChange = type == Operation.Type.INCOME ? amount : amount.negate();
         accountManager.updateBalance(bankAccountId, balanceChange);
 
@@ -64,31 +60,30 @@ public class OperationManager {
     private void validateOperation(Operation.Type type, UUID bankAccountId,
                                    BigDecimal amount, UUID categoryId) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Amount must be positive");
+            throw new IllegalArgumentException("Сумма должна быть положительной");
         }
         if (type == null) {
-            throw new IllegalArgumentException("Operation type cannot be null");
+            throw new IllegalArgumentException("Тип операции не может быть null");
         }
         if (bankAccountId == null) {
-            throw new IllegalArgumentException("Bank account ID cannot be null");
+            throw new IllegalArgumentException("ID счета не может быть null");
         }
         if (!accountRepository.exists(bankAccountId)) {
-            throw new IllegalArgumentException("Bank account not found");
+            throw new IllegalArgumentException("Счет не найден");
         }
         if (categoryId == null) {
-            throw new IllegalArgumentException("Category ID cannot be null");
+            throw new IllegalArgumentException("ID категории не может быть null");
         }
         if (!categoryRepository.exists(categoryId)) {
-            throw new IllegalArgumentException("Category not found");
+            throw new IllegalArgumentException("Категория не найдена");
         }
 
-        // Проверяем соответствие типа категории типу операции
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Категория не найдена"));
 
         if ((type == Operation.Type.INCOME && category.getType() != Category.Type.INCOME) ||
                 (type == Operation.Type.EXPENSE && category.getType() != Category.Type.EXPENSE)) {
-            throw new IllegalArgumentException("Category type does not match operation type");
+            throw new IllegalArgumentException("Тип категории не соответствует типу операции");
         }
     }
 
@@ -104,20 +99,10 @@ public class OperationManager {
         return operationRepository.findByCategoryId(categoryId);
     }
 
-    public Operation updateOperationDescription(UUID id, String newDescription) {
-        Operation operation = operationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Operation not found with id: " + id));
-
-        operation.setDescription(newDescription != null ? newDescription.trim() : "");
-        operationRepository.update(operation);
-        return operation;
-    }
-
     public void deleteOperation(UUID id) {
         Operation operation = operationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Operation not found with id: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Операция не найдена с id: " + id));
 
-        // Откатываем изменение баланса
         BigDecimal balanceChange = operation.getType() == Operation.Type.INCOME ?
                 operation.getAmount().negate() : operation.getAmount();
         accountManager.updateBalance(operation.getBankAccountId(), balanceChange);

@@ -43,7 +43,7 @@ public class InMemoryBankAccountRepository implements BankAccountRepository {
         if (exists(account.getId())) {
             accounts.put(account.getId(), account);
         } else {
-            throw new IllegalArgumentException("Account not found with id: " + account.getId());
+            throw new IllegalArgumentException("Учетная запись с идентификатором не найдена: " + account.getId());
         }
     }
 }
