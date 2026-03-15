@@ -17,6 +17,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testImplementation("junit:junit:4.13.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     testImplementation("org.mockito:mockito-core:5.5.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.5.0")

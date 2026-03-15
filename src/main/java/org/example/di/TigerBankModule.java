@@ -16,21 +16,18 @@ public class TigerBankModule extends AbstractModule {
         bind(OperationRepository.class).to(InMemoryOperationRepository.class).in(Singleton.class);
 
         // Привязка менеджеров
-        bind(AccountManager.class);
-        bind(CategoryManager.class);
-        bind(OperationManager.class);
+        bind(AccountManager.class).in(Singleton.class);
+        bind(CategoryManager.class).in(Singleton.class);
+        bind(OperationManager.class).in(Singleton.class);
 
-        // Привязка сервиса аналитики
-        bind(AnalyticsService.class);
+        // Привязка сервисов
+        bind(AnalyticsService.class).in(Singleton.class);
+        bind(StatisticsService.class).in(Singleton.class);
 
         // Привязка обработчиков импорта/экспорта
         bind(JsonDataHandler.class).in(Singleton.class);
         bind(YamlDataHandler.class).in(Singleton.class);
         bind(CsvDataHandler.class).in(Singleton.class);
         bind(DataHandlerFactory.class).in(Singleton.class);
-
-        // По умолчанию используем JSON для обратной совместимости
-        bind(DataExporter.class).to(JsonDataHandler.class);
-        bind(DataImporter.class).to(JsonDataHandler.class);
     }
 }

@@ -3,6 +3,7 @@ package org.example.service;
 import com.google.inject.Inject;
 import org.example.model.BankAccount;
 import org.example.repository.BankAccountRepository;
+import org.example.repository.OperationRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,10 +13,13 @@ import java.util.UUID;
 public class AccountManager {
 
     private final BankAccountRepository accountRepository;
+    private final OperationRepository operationRepository;
 
     @Inject
-    public AccountManager(BankAccountRepository accountRepository) {
+    public AccountManager(BankAccountRepository accountRepository,
+                          OperationRepository operationRepository) {
         this.accountRepository = accountRepository;
+        this.operationRepository = operationRepository;
     }
 
     public BankAccount createAccount(String name, BigDecimal initialBalance) {
@@ -60,7 +64,14 @@ public class AccountManager {
         if (!accountRepository.exists(id)) {
             throw new IllegalArgumentException("Account not found with id: " + id);
         }
-        // TODO: Добавить проверку на наличие операций по счету
+
+        // Проверяем, есть ли операции по этому счету
+        List<org.example.model.Operation> operations = operationRepository.findByBankAccountId(id);
+        if (!operations.isEmpty()) {
+            // Удаляем все операции по счету
+            operations.forEach(op -> operationRepository.delete(op.getId()));
+        }
+
         accountRepository.delete(id);
     }
 

@@ -1,25 +1,16 @@
 package org.example.console;
 
 import com.google.inject.Inject;
-import org.example.dto.DataExporter;
-import org.example.dto.DataImporter;
-import org.example.dto.ImportResult;
+import org.example.command.*;
 import org.example.dto.DataHandlerFactory;
 import org.example.model.BankAccount;
 import org.example.model.Category;
 import org.example.model.Operation;
-import org.example.service.AccountManager;
-import org.example.service.AnalyticsService;
-import org.example.service.CategoryManager;
-import org.example.service.OperationManager;
+import org.example.service.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.UUID;
 
 public class ConsoleApp {
 
@@ -28,7 +19,9 @@ public class ConsoleApp {
     private final OperationManager operationManager;
     private final AnalyticsService analyticsService;
     private final DataHandlerFactory dataHandlerFactory;
+    private final StatisticsService statisticsService;
     private final Scanner scanner;
+    private final CommandInvoker commandInvoker;
 
     @Inject
     public ConsoleApp(
@@ -36,13 +29,36 @@ public class ConsoleApp {
             CategoryManager categoryManager,
             OperationManager operationManager,
             AnalyticsService analyticsService,
-            DataHandlerFactory dataHandlerFactory) {
+            DataHandlerFactory dataHandlerFactory,
+            StatisticsService statisticsService) {
         this.accountManager = accountManager;
         this.categoryManager = categoryManager;
         this.operationManager = operationManager;
         this.analyticsService = analyticsService;
         this.dataHandlerFactory = dataHandlerFactory;
+        this.statisticsService = statisticsService;
         this.scanner = new Scanner(System.in);
+        this.commandInvoker = new CommandInvoker(statisticsService);
+
+        initializeCommands();
+    }
+
+    private void initializeCommands() {
+        commandInvoker.registerCommand(1, new ShowAccountsCommand(accountManager));
+        commandInvoker.registerCommand(2, new ShowCategoriesCommand(categoryManager));
+        commandInvoker.registerCommand(3, new ShowOperationsCommand(operationManager));
+        commandInvoker.registerCommand(4, new CreateAccountCommand(accountManager, scanner));
+        commandInvoker.registerCommand(5, new CreateCategoryCommand(categoryManager, scanner));
+        commandInvoker.registerCommand(6, new CreateOperationCommand(operationManager, accountManager, categoryManager, scanner));
+        commandInvoker.registerCommand(7, new AnalyticsCommand(analyticsService, scanner));
+        commandInvoker.registerCommand(8, new ExportDataCommand(dataHandlerFactory, accountManager, categoryManager, operationManager, scanner));
+        commandInvoker.registerCommand(9, new ImportDataCommand(dataHandlerFactory, scanner));
+        commandInvoker.registerCommand(10, new UpdateAccountCommand(accountManager, scanner));
+        commandInvoker.registerCommand(11, new UpdateCategoryCommand(categoryManager, scanner));
+        commandInvoker.registerCommand(12, new DeleteAccountCommand(accountManager, operationManager, scanner));
+        commandInvoker.registerCommand(13, new DeleteCategoryCommand(categoryManager, operationManager, scanner));
+        commandInvoker.registerCommand(14, new DeleteOperationCommand(operationManager, scanner));
+        commandInvoker.registerCommand(15, new ShowStatisticsCommand(statisticsService));
     }
 
     public void start() {
@@ -55,419 +71,102 @@ public class ConsoleApp {
     }
 
     private void demonstrateFullFunctionality() {
-        System.out.println("=== ПОЛНАЯ ДЕМОНСТРАЦИЯ ФУНКЦИОНАЛА ===\n");
+        System.out.println("=== ПОЛНАЯ ДЕМОНСТРАЦИЯ ФУНКЦИОНАЛА (без интерактива) ===\n");
 
-        System.out.println("1. СОЗДАНИЕ СЧЕТОВ:");
-        BankAccount mainAccount = accountManager.createAccount("Основной счет", new BigDecimal("50000.00"));
-        BankAccount savingsAccount = accountManager.createAccount("Накопительный счет", new BigDecimal("10000.00"));
-        BankAccount cashAccount = accountManager.createAccount("Наличные", new BigDecimal("5000.00"));
-        printAccounts();
+        // Создаем тестовые данные напрямую через менеджеры, а не через команды с вводом
+        try {
+            // 1. Создаем счет
+            BankAccount account = accountManager.createAccount("Основной счет", new BigDecimal("50000.00"));
+            BankAccount savingsAccount = accountManager.createAccount("Накопительный счет", new BigDecimal("10000.00"));
+            System.out.println("✅ Созданы тестовые счета");
 
-        System.out.println("\n2. СОЗДАНИЕ КАТЕГОРИЙ:");
-        Category salary = categoryManager.createCategory("Зарплата", Category.Type.INCOME);
-        Category cashback = categoryManager.createCategory("Кэшбэк", Category.Type.INCOME);
-        Category cafe = categoryManager.createCategory("Кафе", Category.Type.EXPENSE);
-        Category products = categoryManager.createCategory("Продукты", Category.Type.EXPENSE);
-        Category transport = categoryManager.createCategory("Транспорт", Category.Type.EXPENSE);
-        Category health = categoryManager.createCategory("Здоровье", Category.Type.EXPENSE);
-        Category entertainment = categoryManager.createCategory("Развлечения", Category.Type.EXPENSE);
-        printCategories();
+            // 2. Создаем категории
+            Category salary = categoryManager.createCategory("Зарплата", Category.Type.INCOME);
+            Category products = categoryManager.createCategory("Продукты", Category.Type.EXPENSE);
+            Category cafe = categoryManager.createCategory("Кафе", Category.Type.EXPENSE);
+            System.out.println("✅ Созданы тестовые категории");
 
-        System.out.println("\n3. СОЗДАНИЕ ОПЕРАЦИЙ:");
+            // 3. Создаем операции
+            LocalDate now = LocalDate.now();
+            operationManager.createOperation(Operation.Type.INCOME, account.getId(),
+                    new BigDecimal("75000.00"), now.minusDays(5), "Зарплата", salary.getId());
+            operationManager.createOperation(Operation.Type.EXPENSE, account.getId(),
+                    new BigDecimal("3500.00"), now.minusDays(3), "Продукты", products.getId());
+            operationManager.createOperation(Operation.Type.EXPENSE, account.getId(),
+                    new BigDecimal("1200.00"), now.minusDays(2), "Кофе", cafe.getId());
+            System.out.println("✅ Созданы тестовые операции");
 
-        LocalDate now = LocalDate.now();
+            // 4. Показываем результаты (неинтерактивные команды)
+            commandInvoker.executeCommand(1); // Просмотр счетов
+            commandInvoker.executeCommand(2); // Просмотр категорий
+            commandInvoker.executeCommand(3); // Просмотр операций
 
-        // Доходы
-        operationManager.createOperation(Operation.Type.INCOME, mainAccount.getId(),
-                new BigDecimal("75000.00"), now.minusDays(5), "Зарплата за месяц", salary.getId());
-        operationManager.createOperation(Operation.Type.INCOME, mainAccount.getId(),
-                new BigDecimal("1200.00"), now.minusDays(3), "Кэшбэк по карте", cashback.getId());
-        operationManager.createOperation(Operation.Type.INCOME, savingsAccount.getId(),
-                new BigDecimal("3500.00"), now.minusDays(10), "Проценты по вкладу", cashback.getId());
+            // 5. Аналитика с тестовыми датами
+            System.out.println("\n--- Тестовая аналитика ---");
+            LocalDate startOfMonth = now.withDayOfMonth(1);
+            BigDecimal difference = analyticsService.calculateIncomeExpenseDifference(startOfMonth, now);
+            System.out.println("Разница доходов и расходов: " + difference + " руб.");
 
-        // Расходы
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("3500.00"), now.minusDays(7), "Продукты в супермаркете", products.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("850.00"), now.minusDays(6), "Кофе и завтрак", cafe.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, cashAccount.getId(),
-                new BigDecimal("1500.00"), now.minusDays(4), "Обед в ресторане", cafe.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("3000.00"), now.minusDays(3), "Аптека", health.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("1000.00"), now.minusDays(2), "Такси", transport.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("2500.00"), now.minusDays(1), "Кино и ужин", entertainment.getId());
+            System.out.println("Доходы по категориям:");
+            analyticsService.groupIncomeByCategory(startOfMonth, now)
+                    .forEach((cat, amount) -> System.out.println("  • " + cat.getName() + ": " + amount + " руб."));
 
-        // Операции за прошлый месяц
-        LocalDate lastMonth = now.minusMonths(1);
-        operationManager.createOperation(Operation.Type.INCOME, mainAccount.getId(),
-                new BigDecimal("75000.00"), lastMonth.withDayOfMonth(10), "Зарплата", salary.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("12000.00"), lastMonth.withDayOfMonth(15), "Отпуск", entertainment.getId());
-        operationManager.createOperation(Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("4500.00"), lastMonth.withDayOfMonth(20), "Продукты", products.getId());
+            // 6. Экспорт (создаем файлы в текущей директории)
+            String jsonFile = "tigerbank_test.json";
+            String yamlFile = "tigerbank_test.yaml";
+            String csvFile = "tigerbank_test.csv";
 
-        printOperations();
+            dataHandlerFactory.getExporter(jsonFile).export(
+                    accountManager.getAllAccounts(),
+                    categoryManager.getAllCategories(),
+                    operationManager.getAllOperations(),
+                    jsonFile);
+            dataHandlerFactory.getExporter(yamlFile).export(
+                    accountManager.getAllAccounts(),
+                    categoryManager.getAllCategories(),
+                    operationManager.getAllOperations(),
+                    yamlFile);
+            dataHandlerFactory.getExporter(csvFile).export(
+                    accountManager.getAllAccounts(),
+                    categoryManager.getAllCategories(),
+                    operationManager.getAllOperations(),
+                    csvFile);
+            System.out.println("✅ Выполнен тестовый экспорт в JSON/YAML/CSV");
 
-        System.out.println("\n4. АНАЛИТИКА:");
+            // 7. Статистика
+            commandInvoker.executeCommand(15); // Просмотр статистики
 
-        LocalDate startOfMonth = now.withDayOfMonth(1);
-
-        BigDecimal difference = analyticsService.calculateIncomeExpenseDifference(startOfMonth, now);
-        System.out.println("   Разница доходов и расходов за текущий месяц: " + difference + " руб.");
-
-        System.out.println("\n   Доходы по категориям:");
-        analyticsService.groupIncomeByCategory(startOfMonth, now)
-                .forEach((cat, amount) ->
-                        System.out.println("   • " + cat.getName() + ": " + amount + " руб."));
-
-        System.out.println("\n   Расходы по категориям:");
-        analyticsService.groupExpenseByCategory(startOfMonth, now)
-                .forEach((cat, amount) ->
-                        System.out.println("   • " + cat.getName() + ": " + amount + " руб."));
-
-        System.out.println("\n   Топ-3 категорий расходов:");
-        analyticsService.getTopExpenseCategories(startOfMonth, now, 3)
-                .forEach(entry ->
-                        System.out.println("   • " + entry.getKey().getName() + ": " + entry.getValue() + " руб."));
-
-        System.out.println("\n   Динамика по месяцам:");
-        Map<YearMonth, AnalyticsService.BalanceInfo> dynamics =
-                analyticsService.getMonthlyDynamics(lastMonth.minusMonths(2), now);
-        dynamics.forEach((month, info) ->
-                System.out.println("   • " + month + ": " + info));
-
-        System.out.println("\n5. ЭКСПОРТ ДАННЫХ В РАЗНЫХ ФОРМАТАХ:");
-
-        // Экспорт в JSON
-        String jsonFile = "tigerbank_export.json";
-        DataExporter jsonExporter = dataHandlerFactory.getExporter(jsonFile);
-        jsonExporter.export(
-                accountManager.getAllAccounts(),
-                categoryManager.getAllCategories(),
-                operationManager.getAllOperations(),
-                jsonFile
-        );
-        System.out.println("   ✓ JSON экспорт завершен (файл: " + jsonFile + ")");
-
-        // Экспорт в YAML
-        String yamlFile = "tigerbank_export.yaml";
-        DataExporter yamlExporter = dataHandlerFactory.getExporter(yamlFile);
-        yamlExporter.export(
-                accountManager.getAllAccounts(),
-                categoryManager.getAllCategories(),
-                operationManager.getAllOperations(),
-                yamlFile
-        );
-        System.out.println("   ✓ YAML экспорт завершен (файл: " + yamlFile + ")");
-
-        // Экспорт в CSV
-        String csvFile = "tigerbank_export.csv";
-        DataExporter csvExporter = dataHandlerFactory.getExporter(csvFile);
-        csvExporter.export(
-                accountManager.getAllAccounts(),
-                categoryManager.getAllCategories(),
-                operationManager.getAllOperations(),
-                csvFile
-        );
-        System.out.println("   ✓ CSV экспорт завершен (файл: " + csvFile + ")");
-
-        System.out.println("\n6. ИМПОРТ ДАННЫХ ИЗ РАЗНЫХ ФОРМАТОВ:");
-
-        // Импорт из JSON
-        DataImporter jsonImporter = dataHandlerFactory.getImporter(jsonFile);
-        ImportResult jsonResult = jsonImporter.importData(jsonFile);
-        System.out.println("   JSON импорт: " + jsonResult);
-
-        // Импорт из YAML
-        DataImporter yamlImporter = dataHandlerFactory.getImporter(yamlFile);
-        ImportResult yamlResult = yamlImporter.importData(yamlFile);
-        System.out.println("   YAML импорт: " + yamlResult);
-
-        // Импорт из CSV
-        DataImporter csvImporter = dataHandlerFactory.getImporter(csvFile);
-        ImportResult csvResult = csvImporter.importData(csvFile);
-        System.out.println("   CSV импорт: " + csvResult);
-
-        System.out.println("\n7. ДЕМОНСТРАЦИЯ CRUD ОПЕРАЦИЙ:");
-
-        System.out.println("   Обновление названия счета:");
-        BankAccount updatedAccount = accountManager.updateAccountName(mainAccount.getId(), "Основной счет (обновлен)");
-        System.out.println("   ✓ Новое название: " + updatedAccount.getName());
-
-        System.out.println("\n   Обновление названия категории:");
-        Category updatedCategory = categoryManager.updateCategoryName(cafe.getId(), "Кафе и рестораны");
-        System.out.println("   ✓ Новое название: " + updatedCategory.getName());
-
-        System.out.println("\n   Обновление описания операции:");
-        List<Operation> ops = operationManager.getAllOperations();
-        if (!ops.isEmpty()) {
-            Operation op = ops.get(0);
-            Operation updatedOp = operationManager.updateOperationDescription(
-                    op.getId(), op.getDescription() + " (обновлено)");
-            System.out.println("   ✓ Новое описание: " + updatedOp.getDescription());
+        } catch (Exception e) {
+            System.out.println("❌ Ошибка в демонстрации: " + e.getMessage());
         }
 
-        System.out.println("\n   Удаление операции:");
-        Operation tempOp = operationManager.createOperation(
-                Operation.Type.EXPENSE, mainAccount.getId(),
-                new BigDecimal("100.00"), LocalDate.now(),
-                "Временная операция", transport.getId());
-        System.out.println("   ✓ Создана временная операция: " + tempOp.getDescription());
-
-        operationManager.deleteOperation(tempOp.getId());
-        System.out.println("   ✓ Временная операция удалена");
-
         System.out.println("\n=== ДЕМОНСТРАЦИЯ ЗАВЕРШЕНА ===\n");
+        System.out.println("Нажмите Enter для перехода в интерактивный режим...");
+        scanner.nextLine();
     }
 
     private void interactiveMenu() {
         while (true) {
-            System.out.println("\n=== ИНТЕРАКТИВНОЕ МЕНЮ ===");
-            System.out.println("1. Показать все счета");
-            System.out.println("2. Показать все категории");
-            System.out.println("3. Показать все операции");
-            System.out.println("4. Создать счет");
-            System.out.println("5. Создать категорию");
-            System.out.println("6. Создать операцию");
-            System.out.println("7. Аналитика");
-            System.out.println("8. Экспорт данных (JSON/YAML/CSV)");
-            System.out.println("9. Импорт данных (JSON/YAML/CSV)");
-            System.out.println("10. Обновить счет");
-            System.out.println("11. Обновить категорию");
-            System.out.println("12. Удалить операцию");
-            System.out.println("0. Выход");
-            System.out.print("Выберите действие: ");
+            commandInvoker.printMenu();
 
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
+            int choice;
             try {
-                switch (choice) {
-                    case 1 -> printAccounts();
-                    case 2 -> printCategories();
-                    case 3 -> printOperations();
-                    case 4 -> createAccountInteractive();
-                    case 5 -> createCategoryInteractive();
-                    case 6 -> createOperationInteractive();
-                    case 7 -> analyticsMenu();
-                    case 8 -> exportMenu();
-                    case 9 -> importMenu();
-                    case 10 -> updateAccountInteractive();
-                    case 11 -> updateCategoryInteractive();
-                    case 12 -> deleteOperationInteractive();
-                    case 0 -> {
-                        System.out.println("До свидания!");
-                        return;
-                    }
-                    default -> System.out.println("Неверный выбор!");
-                }
+                choice = scanner.nextInt();
+                scanner.nextLine();
             } catch (Exception e) {
-                System.out.println("❌ Ошибка: " + e.getMessage());
+                scanner.nextLine(); // очищаем буфер
+                System.out.println("❌ Пожалуйста, введите число");
+                continue;
             }
-        }
-    }
 
-    private void printAccounts() {
-        List<BankAccount> accounts = accountManager.getAllAccounts();
-        System.out.println("\n--- Счета ---");
-        if (accounts.isEmpty()) {
-            System.out.println("Счета отсутствуют");
-        } else {
-            accounts.forEach(acc ->
-                    System.out.println("• " + acc.getId() + " | " + acc.getName() + " | " +
-                            acc.getBalance() + " руб."));
-        }
-    }
-
-    private void printCategories() {
-        List<Category> categories = categoryManager.getAllCategories();
-        System.out.println("\n--- Категории ---");
-        if (categories.isEmpty()) {
-            System.out.println("Категории отсутствуют");
-        } else {
-            categories.forEach(cat ->
-                    System.out.println("• " + cat.getId() + " | " + cat.getName() + " | " + cat.getType()));
-        }
-    }
-
-    private void printOperations() {
-        List<Operation> operations = operationManager.getAllOperations();
-        System.out.println("\n--- Операции ---");
-        if (operations.isEmpty()) {
-            System.out.println("Операции отсутствуют");
-        } else {
-            operations.forEach(op ->
-                    System.out.println("• " + op.getId() + " | " + op.getDate() + " | " +
-                            op.getType() + " | " + op.getAmount() + " руб. | " +
-                            op.getDescription() + " | Счет: " + op.getBankAccountId() +
-                            " | Категория: " + op.getCategoryId()));
-        }
-    }
-
-    private void createAccountInteractive() {
-        System.out.print("Введите название счета: ");
-        String name = scanner.nextLine();
-        System.out.print("Введите начальный баланс: ");
-        BigDecimal balance = scanner.nextBigDecimal();
-        scanner.nextLine();
-
-        BankAccount account = accountManager.createAccount(name, balance);
-        System.out.println("✅ Счет создан: " + account.getName() + " (ID: " + account.getId() + ")");
-    }
-
-    private void createCategoryInteractive() {
-        System.out.print("Введите название категории: ");
-        String name = scanner.nextLine();
-        System.out.print("Введите тип (INCOME/EXPENSE): ");
-        String typeStr = scanner.nextLine().toUpperCase();
-        Category.Type type = Category.Type.valueOf(typeStr);
-
-        Category category = categoryManager.createCategory(name, type);
-        System.out.println("✅ Категория создана: " + category.getName() + " (ID: " + category.getId() + ")");
-    }
-
-    private void createOperationInteractive() {
-        try {
-            System.out.print("Введите тип операции (INCOME/EXPENSE): ");
-            String typeStr = scanner.nextLine().toUpperCase();
-            Operation.Type type = Operation.Type.valueOf(typeStr);
-
-            printAccounts();
-            System.out.print("Введите ID счета: ");
-            UUID accountId = UUID.fromString(scanner.nextLine());
-
-            System.out.print("Введите сумму: ");
-            BigDecimal amount = scanner.nextBigDecimal();
-            scanner.nextLine();
-
-            System.out.print("Введите дату (ГГГГ-ММ-ДД) или Enter для текущей даты: ");
-            String dateStr = scanner.nextLine();
-            LocalDate date = dateStr.isEmpty() ? LocalDate.now() : LocalDate.parse(dateStr);
-
-            System.out.print("Введите описание: ");
-            String description = scanner.nextLine();
-
-            printCategories();
-            System.out.print("Введите ID категории: ");
-            UUID categoryId = UUID.fromString(scanner.nextLine());
-
-            Operation operation = operationManager.createOperation(
-                    type, accountId, amount, date, description, categoryId
-            );
-            System.out.println("✅ Операция создана (ID: " + operation.getId() + ")");
-
-        } catch (Exception e) {
-            System.out.println("❌ Ошибка: " + e.getMessage());
-        }
-    }
-
-    private void analyticsMenu() {
-        System.out.println("\n--- Аналитика ---");
-        System.out.print("Введите начальную дату (ГГГГ-ММ-ДД): ");
-        LocalDate start = LocalDate.parse(scanner.nextLine());
-        System.out.print("Введите конечную дату (ГГГГ-ММ-ДД): ");
-        LocalDate end = LocalDate.parse(scanner.nextLine());
-
-        BigDecimal difference = analyticsService.calculateIncomeExpenseDifference(start, end);
-        System.out.println("Разница доходов и расходов: " + difference + " руб.");
-
-        System.out.println("\nДоходы по категориям:");
-        analyticsService.groupIncomeByCategory(start, end)
-                .forEach((cat, amount) ->
-                        System.out.println("• " + cat.getName() + ": " + amount + " руб."));
-
-        System.out.println("\nРасходы по категориям:");
-        analyticsService.groupExpenseByCategory(start, end)
-                .forEach((cat, amount) ->
-                        System.out.println("• " + cat.getName() + ": " + amount + " руб."));
-
-        System.out.println("\nОбщая сумма доходов: " + analyticsService.getTotalIncome(start, end) + " руб.");
-        System.out.println("Общая сумма расходов: " + analyticsService.getTotalExpense(start, end) + " руб.");
-    }
-
-    private void exportMenu() {
-        System.out.println("\n--- Экспорт данных ---");
-        System.out.println("Поддерживаемые форматы:");
-        System.out.println("  • JSON - файл с расширением .json");
-        System.out.println("  • YAML - файл с расширением .yaml или .yml");
-        System.out.println("  • CSV  - файл с расширением .csv");
-        System.out.print("Введите имя файла для экспорта (например, data.json, data.yaml или data.csv): ");
-        String filename = scanner.nextLine();
-
-        try {
-            DataExporter exporter = dataHandlerFactory.getExporter(filename);
-            exporter.export(
-                    accountManager.getAllAccounts(),
-                    categoryManager.getAllCategories(),
-                    operationManager.getAllOperations(),
-                    filename
-            );
-            System.out.println("✅ Экспорт в " + filename + " завершен успешно!");
-        } catch (IllegalArgumentException e) {
-            System.out.println("❌ " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("❌ Ошибка при экспорте: " + e.getMessage());
-        }
-    }
-
-    private void importMenu() {
-        System.out.println("\n--- Импорт данных ---");
-        System.out.println("Поддерживаемые форматы:");
-        System.out.println("  • JSON - файл с расширением .json");
-        System.out.println("  • YAML - файл с расширением .yaml или .yml");
-        System.out.println("  • CSV  - файл с расширением .csv");
-        System.out.print("Введите имя файла для импорта (например, data.json, data.yaml или data.csv): ");
-        String filename = scanner.nextLine();
-
-        try {
-            DataImporter importer = dataHandlerFactory.getImporter(filename);
-            ImportResult result = importer.importData(filename);
-            System.out.println("Результат импорта: " + result);
-
-            if (!result.hasErrors()) {
-                System.out.println("✅ Импорт из " + filename + " завершен успешно!");
-                System.out.println("Импортированные данные можно просмотреть в соответствующих разделах.");
-            } else {
-                System.out.println("⚠️ Импорт завершен с ошибками:");
-                result.getErrors().forEach(err -> System.out.println("  • " + err));
+            if (choice == 0) {
+                System.out.println("\n=== ИТОГОВАЯ СТАТИСТИКА ===");
+                statisticsService.printStatistics();
+                System.out.println("\nДо свидания!");
+                return;
             }
-        } catch (IllegalArgumentException e) {
-            System.out.println("❌ " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("❌ Ошибка при импорте: " + e.getMessage());
+
+            commandInvoker.executeCommand(choice);
         }
-    }
-
-    private void updateAccountInteractive() {
-        printAccounts();
-        System.out.print("Введите ID счета для обновления: ");
-        UUID id = UUID.fromString(scanner.nextLine());
-        System.out.print("Введите новое название: ");
-        String newName = scanner.nextLine();
-
-        BankAccount updated = accountManager.updateAccountName(id, newName);
-        System.out.println("✅ Счет обновлен: " + updated.getName());
-    }
-
-    private void updateCategoryInteractive() {
-        printCategories();
-        System.out.print("Введите ID категории для обновления: ");
-        UUID id = UUID.fromString(scanner.nextLine());
-        System.out.print("Введите новое название: ");
-        String newName = scanner.nextLine();
-
-        Category updated = categoryManager.updateCategoryName(id, newName);
-        System.out.println("✅ Категория обновлена: " + updated.getName());
-    }
-
-    private void deleteOperationInteractive() {
-        printOperations();
-        System.out.print("Введите ID операции для удаления: ");
-        UUID id = UUID.fromString(scanner.nextLine());
-
-        operationManager.deleteOperation(id);
-        System.out.println("✅ Операция удалена");
     }
 }

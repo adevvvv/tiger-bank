@@ -3,6 +3,7 @@ package org.example.service;
 import com.google.inject.Inject;
 import org.example.model.Category;
 import org.example.repository.CategoryRepository;
+import org.example.repository.OperationRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,10 +11,13 @@ import java.util.UUID;
 public class CategoryManager {
 
     private final CategoryRepository categoryRepository;
+    private final OperationRepository operationRepository;
 
     @Inject
-    public CategoryManager(CategoryRepository categoryRepository) {
+    public CategoryManager(CategoryRepository categoryRepository,
+                           OperationRepository operationRepository) {
         this.categoryRepository = categoryRepository;
+        this.operationRepository = operationRepository;
     }
 
     public Category createCategory(String name, Category.Type type) {
@@ -54,4 +58,20 @@ public class CategoryManager {
         return category;
     }
 
+    public void deleteCategory(UUID id) {
+        if (!categoryRepository.exists(id)) {
+            throw new IllegalArgumentException("Category not found with id: " + id);
+        }
+
+        // Проверяем, есть ли операции с этой категорией
+        var operations = operationRepository.findByCategoryId(id);
+        if (!operations.isEmpty()) {
+            // В реальном приложении здесь может быть логика переназначения категорий
+            // или запрет на удаление. Пока просто предупреждаем, но удаляем.
+            System.out.println("⚠️ Внимание: удаляется категория, используемая в " +
+                    operations.size() + " операциях");
+        }
+
+        categoryRepository.delete(id);
+    }
 }
